@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.29", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "okokscale/_version.py"
+
+[tool.hatch.version]
+source = "vcs"
+
+[project]
+name = "okokscale"
+dynamic = ["version"]
+license = {text = "Apache-2.0"}
+authors = [
+    { name="Rogier van Staveren", email="rogier@batoid.com" }
+]
+description = "Library for parsing OKOK scale BLE advertisements."
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "bleak>=3.0.2",
+    "bluetooth_sensor_state_data==1.9.0"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/rrooggiieerr/okokscale.py"
+"Bug Tracker" = "https://github.com/rrooggiieerr/okokscale.py/issues"
+
+[tool.isort]
+# https://github.com/PyCQA/isort/wiki/isort-Settings
+profile = "black"
+skip = "*/_version.py"
+
+[tool.black]
+exclude = "rfcontrol/_version.py"
+
+[tool.pylint]
+ignore = "_version.py"
+recursive = "y"
+
+[tool.mypy]
+python_version = "3.11"
+mypy_path = "rfcontrol"
+
+[[tool.mypy.overrides]]
+module = ["*._version"]
+ignore_missing_imports = true
