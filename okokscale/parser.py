@@ -327,7 +327,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             checksum ^= data[i]
         if data[IDX_V20_CHECKSUM] != checksum:
             _LOGGER.error(
-                "Checksum error, got 0x%s, expected 0x%s",
+                "Checksum error, got %s, expected %s",
                 hex(data[IDX_V20_CHECKSUM] & 0xFF),
                 hex(checksum & 0xFF),
             )
@@ -430,7 +430,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
     def log_manufacturer_data(self, manufacturer_data):
         for manufacturer_id in manufacturer_data:
             data = manufacturer_data[manufacturer_id]
-            _LOGGER.debug("Manufacturer Identifier: %s", hex(manufacturer_id))
+            _LOGGER.debug("Manufacturer Identifier: %s (%d)", hex(manufacturer_id), manufacturer_id)
             _LOGGER.debug("Manufacturer Data Length: %s", len(data))
             try:
                 _LOGGER.debug("Manufacturer Data: %s", data.decode())
