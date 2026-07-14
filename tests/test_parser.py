@@ -1,8 +1,8 @@
 import pytest
 from habluetooth.models import BluetoothServiceInfo
+from sensor_state_data.device import DeviceKey
 
 from okokscale.parser import OKOKScaleBluetoothDeviceData
-from sensor_state_data.device import DeviceKey
 
 UNSUPPORTED_SERVICE_INFO = BluetoothServiceInfo(
     name="Not it",
@@ -62,6 +62,7 @@ def test_unsupported_service_info() -> None:
     result = bt_device_data.supported(UNSUPPORTED_SERVICE_INFO)
     assert result == False
 
+
 def test_f0_service_info() -> None:
     bt_device_data = OKOKScaleBluetoothDeviceData()
 
@@ -88,6 +89,7 @@ def test_f0_service_info() -> None:
     entity_value = sensor_update.entity_values[DeviceKey("signal_strength")]
     assert entity_value.native_value == -60
 
+
 def test_20_service_info() -> None:
     bt_device_data = OKOKScaleBluetoothDeviceData()
 
@@ -113,6 +115,7 @@ def test_20_service_info() -> None:
     assert entity_description.native_unit_of_measurement == "dBm"
     entity_value = sensor_update.entity_values[DeviceKey("signal_strength")]
     assert entity_value.native_value == -61
+
 
 def test_c0_service_info() -> None:
     bt_device_data = OKOKScaleBluetoothDeviceData()
