@@ -74,9 +74,9 @@ IDX_VF0_WEIGHT_LSB = 2
 class OKOKScaleBluetoothDeviceData(BluetoothData):
     """Data for OKOK Scale sensors."""
 
-    name = None
+    name: str
 
-    _device = None
+    _device: BLEDevice
     _client = None
     _expected_disconnect = False
 
@@ -165,7 +165,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             self._expected_disconnect = True
             await self._client.disconnect()
 
-    def _disconnected(self, client: BleakClientWithServiceCache) -> None:
+    def _disconnected(self, client: BleakClient) -> None:
         """Disconnected callback."""
         if self._expected_disconnect:
             _LOGGER.debug("%s: Disconnected from device", self.get_device_name())
