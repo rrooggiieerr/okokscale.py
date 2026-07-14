@@ -444,7 +444,11 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
     def log_manufacturer_data(self, manufacturer_data):
         for manufacturer_id in manufacturer_data:
             data = manufacturer_data[manufacturer_id]
-            _LOGGER.debug("Manufacturer Identifier: %s (%d)", hex(manufacturer_id), manufacturer_id)
+            _LOGGER.debug(
+                "Manufacturer Identifier: %s (%d)",
+                hex(manufacturer_id),
+                manufacturer_id,
+            )
             _LOGGER.debug("Manufacturer Data Length: %s", len(data))
             try:
                 _LOGGER.debug("Manufacturer Data: %s", data.decode())
