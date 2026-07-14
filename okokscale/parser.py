@@ -187,7 +187,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
 
                 control_bytes = (
                     body_composition_payload[1] << 8
-                ) + body_composition_payload[0]
+                ) | body_composition_payload[0]
                 partial = (control_bytes & 1024) > 0
                 in_pounds = (control_bytes & 256) > 0
                 finished = (control_bytes & 128) > 0
@@ -195,19 +195,21 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 weight_stabilized = (control_bytes & 32) > 0
                 impedance_stabilized = (control_bytes & 2) > 0
 
-                weight = (
-                    (body_composition_payload[12] << 8) + body_composition_payload[11]
-                ) / 10
-                _LOGGER.debug("Weight: %.2f kg", weight)
+                if not in_pounds and not in_jin:
+                    msb = body_composition_payload[12]
+                    lsb = body_composition_payload[11]
+                    weight = msb << 8 | lsb
+                    weight = weight / 10
+                    _LOGGER.debug("Weight: %.2f kg", weight)
+
+                    self.update_predefined_sensor(
+                        SensorLibrary.MASS__MASS_KILOGRAMS, weight
+                    )
 
                 impedance = (
                     body_composition_payload[10] << 8
-                ) + body_composition_payload[9]
+                ) | body_composition_payload[9]
                 _LOGGER.debug("Impedance: %d Ω", impedance)
-
-                self.update_predefined_sensor(
-                    SensorLibrary.MASS__MASS_KILOGRAMS, weight
-                )
 
                 self.update_predefined_sensor(SensorLibrary.IMPEDANCE__OHM, impedance)
 
@@ -275,8 +277,9 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
 
         # Reading the weight
         divider = 10.0
-        weight = data[IDX_V11_WEIGHT_MSB] & 0xFF
-        weight = weight << 8 | (data[IDX_V11_WEIGHT_LSB] & 0xFF)
+        msb = data[IDX_V11_WEIGHT_MSB]
+        lsb = data[IDX_V11_WEIGHT_LSB]
+        weight = msb << 8 | lsb
 
         match (data[IDX_V11_BODY_PROPERTIES] >> 1) & 3:
             case 0:
@@ -302,8 +305,8 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 weight = weight / divider
                 base_description = SensorLibrary.MASS__MASS_POUNDS
             case 3:  # st & lb
-                stones = weight >> 8
-                pounds = (weight & 0xFF) / divider
+                stones = msb
+                punds = lsb / divider
                 weight = pounds + (stones * 14)
                 base_description = SensorLibrary.MASS__MASS_POUNDS
         _LOGGER.debug(
@@ -337,17 +340,20 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
         divider = 10.0
         if (data[IDX_V20_FINAL] & 4) == 4:
             divider = 100.0
-        weight = ((data[IDX_V20_WEIGHT_MSB] << 8) + data[IDX_V20_WEIGHT_LSB]) / divider
+        msb = data[IDX_V20_WEIGHT_MSB]
+        lsb = data[IDX_V20_WEIGHT_LSB]
+        weight = msb << 8 | lsb
+        weight = weight / divider
         _LOGGER.debug("Weight: %.2f kg", weight)
 
         # Reading the impedance
-        impedance = (
-            (data[IDX_V20_IMPEDANCE_MSB] << 8) + data[IDX_V20_IMPEDANCE_LSB]
-        ) / 10.0
+        msb = data[IDX_V20_IMPEDANCE_MSB]
+        lsb = data[IDX_V20_IMPEDANCE_LSB]
+        impedance = msb << 8 | lsb
+        impedance = impedance / 10.0
         _LOGGER.debug("Impedance: %.1f Ω", impedance)
 
         self.update_predefined_sensor(SensorLibrary.MASS__MASS_KILOGRAMS, weight)
-
         self.update_predefined_sensor(SensorLibrary.IMPEDANCE__OHM, impedance)
 
     def _process_manufacturer_data_vc0(self, manufacturer_data):
@@ -375,18 +381,23 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             _LOGGER.debug("Data is not final")
             # return
 
+        # Reading the weight
         msb = data[IDX_VC0_WEIGHT_MSB]
         lsb = data[IDX_VC0_WEIGHT_LSB]
+        weight = msb << 8 | lsb
+
         base_description = None
         match data[IDX_VC0_BODY_PROPERTIES] >> 3 & 0x3:
             case 0:  # kg
-                weight = (msb << 8 | lsb) / 100.0
+                weight = weight / 100.0
                 base_description = SensorLibrary.MASS__MASS_KILOGRAMS
             case 2:  # lb
-                weight = (msb << 8 | lsb) / 10.0
+                weight = weight / 10.0
                 base_description = SensorLibrary.MASS__MASS_POUNDS
             case 3:  # st:lb
-                weight = msb * 14 + lsb / 10.0
+                stones = msb
+                punds = lsb / 10.0
+                weight = pounds + (stones * 14)
                 base_description = SensorLibrary.MASS__MASS_POUNDS
         _LOGGER.debug(
             "Weight: %.2f %s", weight, base_description.native_unit_of_measurement
@@ -401,8 +412,10 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             return
 
         # Reading the weight
-        # ToDo use unpack
-        weight = ((data[IDX_VF0_WEIGHT_MSB] << 8) + data[IDX_VF0_WEIGHT_LSB]) / 10.0
+        msb = data[IDX_VF0_WEIGHT_MSB]
+        lsb = data[IDX_VF0_WEIGHT_LSB]
+        weight = msb << 8 | lsb
+        weight = weight / 10.0
         _LOGGER.debug("Weight: %.1f kg", weight)
 
         self.update_predefined_sensor(SensorLibrary.MASS__MASS_KILOGRAMS, weight)
