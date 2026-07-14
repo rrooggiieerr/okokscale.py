@@ -403,7 +403,8 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             "Weight: %.2f %s", weight, base_description.native_unit_of_measurement
         )
 
-        self.update_predefined_sensor(base_description, weight)
+        if base_description:
+            self.update_predefined_sensor(base_description, weight)
 
     def _process_manufacturer_data_vf0(self, manufacturer_data):
         data = manufacturer_data[MANUFACTURER_DATA_ID_VF0]
