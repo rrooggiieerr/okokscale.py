@@ -2,6 +2,11 @@
 requires = ["hatchling>=1.29", "hatch-vcs"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build]
+exclude = [
+  "/tests",
+]
+
 [tool.hatch.build.hooks.vcs]
 version-file = "okokscale/_version.py"
 
@@ -39,7 +44,7 @@ profile = "black"
 skip = "*/_version.py"
 
 [tool.black]
-exclude = "rfcontrol/_version.py"
+exclude = "okokscale/_version.py"
 
 [tool.pylint]
 ignore = "_version.py"
@@ -47,7 +52,8 @@ recursive = "y"
 
 [tool.mypy]
 python_version = "3.11"
-mypy_path = "rfcontrol"
+mypy_path = "okokscale"
+exclude = "tests"
 
 [[tool.mypy.overrides]]
 module = ["*._version"]
