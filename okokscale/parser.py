@@ -91,10 +91,10 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             key & 0xFF for key in service_info.manufacturer_data
         ]
         if not (
-            MANUFACTURER_DATA_ID_V10 in service_info.manufacturer_data
-            or MANUFACTURER_DATA_ID_V11 in service_info.manufacturer_data
+            # MANUFACTURER_DATA_ID_V10 in service_info.manufacturer_data or
+            MANUFACTURER_DATA_ID_V11 in service_info.manufacturer_data
             or MANUFACTURER_DATA_ID_V20 in service_info.manufacturer_data
-            or MANUFACTURER_DATA_ID_V26 in service_info.manufacturer_data
+            # or MANUFACTURER_DATA_ID_V26 in service_info.manufacturer_data
             or MANUFACTURER_DATA_ID_VF0 in service_info.manufacturer_data
             or MANUFACTURER_DATA_ID_VC0 in manufacturer_data_key_lsbs
         ):
@@ -119,10 +119,10 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
         """Return True if the device is supported."""
         manufacturer_data_key_lsbs = [key & 0xFF for key in data.manufacturer_data]
         if not (
-            MANUFACTURER_DATA_ID_V10 in data.manufacturer_data
-            or MANUFACTURER_DATA_ID_V11 in data.manufacturer_data
+            # MANUFACTURER_DATA_ID_V10 in data.manufacturer_data or
+            MANUFACTURER_DATA_ID_V11 in data.manufacturer_data
             or MANUFACTURER_DATA_ID_V20 in data.manufacturer_data
-            or MANUFACTURER_DATA_ID_V26 in data.manufacturer_data
+            # or MANUFACTURER_DATA_ID_V26 in data.manufacturer_data
             or MANUFACTURER_DATA_ID_VF0 in data.manufacturer_data
             or MANUFACTURER_DATA_ID_VC0 in manufacturer_data_key_lsbs
         ):
