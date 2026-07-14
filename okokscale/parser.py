@@ -127,7 +127,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             or MANUFACTURER_DATA_ID_VC0 in manufacturer_data_key_lsbs
         ):
             return False
-        return True
+        return super().supported(data)
 
     def poll_needed(
         self, service_info: BluetoothServiceInfo, last_poll: float | None
