@@ -115,8 +115,6 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
 
         self.process_manufacturer_data(service_info.manufacturer_data)
 
-        self.update_signal_strength(service_info.rssi)
-
     def supported(self, data: BluetoothServiceInfo) -> bool:
         """Return True if the device is supported."""
         manufacturer_data_key_lsbs = [key & 0xFF for key in data.manufacturer_data]
