@@ -306,7 +306,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 base_description = SensorLibrary.MASS__MASS_POUNDS
             case 3:  # st & lb
                 stones = msb
-                punds = lsb / divider
+                pounds = lsb / divider
                 weight = pounds + (stones * 14)
                 base_description = SensorLibrary.MASS__MASS_POUNDS
         _LOGGER.debug(
@@ -396,7 +396,7 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 base_description = SensorLibrary.MASS__MASS_POUNDS
             case 3:  # st:lb
                 stones = msb
-                punds = lsb / 10.0
+                pounds = lsb / 10.0
                 weight = pounds + (stones * 14)
                 base_description = SensorLibrary.MASS__MASS_POUNDS
         _LOGGER.debug(
