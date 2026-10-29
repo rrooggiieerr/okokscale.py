@@ -37,6 +37,16 @@ OKOK_20_SERVICE_INFO = BluetoothServiceInfo(
     source="local",
 )
 
+OKOK_20_IMPEDANCE_SERVICE_INFO = BluetoothServiceInfo(
+    name="ED:67:37:1C:6A:50",
+    address="ED:67:37:1C:6A:50",
+    rssi=-90,
+    manufacturer_data={8394: bytes.fromhex("0b0000000001010104e115805aed67371c6a50")},
+    service_data={},
+    service_uuids=[],
+    source="local",
+)
+
 OKOK_C0_ADDRESS = "80:F4:16:AB:CD:EF"
 OKOK_C0_TITLE = "OKOK Scale (CDEF)"
 OKOK_C0_SERVICE_INFO = BluetoothServiceInfo(
@@ -143,3 +153,9 @@ def test_c0_service_info() -> None:
     assert entity_description.native_unit_of_measurement == "dBm"
     entity_value = sensor_update.entity_values[DeviceKey("signal_strength")]
     assert entity_value.native_value == -62
+
+
+def test_20_impedance_checksum() -> None:
+    bt_device_data = OKOKScaleBluetoothDeviceData()
+    sensor_update = bt_device_data.update(OKOK_20_IMPEDANCE_SERVICE_INFO)
+    assert sensor_update.entity_values[DeviceKey("mass")].native_value == 124.9

@@ -340,7 +340,11 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
         checksum = 0x20  # Version field is part of the checksum, but not in array
         for i in range(IDX_V20_CHECKSUM - 1):
             checksum ^= data[i]
-        if data[IDX_V20_CHECKSUM] != checksum:
+        # Some firmware also includes the impedance LSB (byte 11) in the checksum
+        if data[IDX_V20_CHECKSUM] not in (
+            checksum,
+            checksum ^ data[IDX_V20_CHECKSUM - 1],
+        ):
             _LOGGER.error(
                 "Checksum error, got %s, expected %s",
                 hex(data[IDX_V20_CHECKSUM] & 0xFF),
