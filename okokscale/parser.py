@@ -65,6 +65,7 @@ IDX_V26_WEIGHT_LSB = 2
 IDX_VC0_FINAL = 6
 IDX_VC0_WEIGHT_MSB = 0
 IDX_VC0_WEIGHT_LSB = 1
+IDX_VC0_ENCRYPTION = 2
 IDX_VC0_BODY_PROPERTIES = 6
 
 IDX_VF0_WEIGHT_MSB = 3
@@ -258,7 +259,10 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
         self, manufacturer_data: dict[int, bytes]
     ) -> None:
         data = manufacturer_data[MANUFACTURER_DATA_ID_V11]
-        if data is None or len(data) != IDX_V11_CHECKSUM + 6 + 1:
+        if data is None:
+            return
+
+        if len(data) != IDX_V11_CHECKSUM + 6 + 1:
             _LOGGER.error(
                 "Data length error, got %d, expected %d",
                 len(data),
@@ -266,14 +270,10 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             )
             return
 
-        if (data[IDX_V11_FINAL] & 1) == 0:
-            _LOGGER.debug("Data is not final")
-            return
-
         checksum = (
             0xCA ^ 0x11
         )  # Version and magic fields are part of the checksum, but not in array
-        for i in range(IDX_V11_CHECKSUM - 1):
+        for i in range(IDX_V11_CHECKSUM):
             checksum ^= data[i]
         if data[IDX_V11_CHECKSUM] != checksum:
             _LOGGER.error(
@@ -282,6 +282,12 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 hex(checksum & 0xFF),
             )
             return
+
+        if (data[IDX_V11_FINAL] & 1) == 0:
+            _LOGGER.debug("Data is not final")
+            # return
+        else:
+            _LOGGER.debug("Data is final")
 
         # Reading the weight
         divider = 10.0
@@ -333,20 +339,30 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
             _LOGGER.error("Data length error, got %d, expected 19", len(data))
             return
 
-        if (data[IDX_V20_FINAL] & 1) == 0:
-            _LOGGER.debug("Data is not final")
-            return
-
+        checksums: list[int] = []
         checksum = 0x20  # Version field is part of the checksum, but not in array
         for i in range(IDX_V20_CHECKSUM - 1):
             checksum ^= data[i]
-        if data[IDX_V20_CHECKSUM] != checksum:
+        checksums.append(checksum)
+
+        # Some firmware also includes the impedance LSB (byte 11) in the checksum
+        checksum = 0x20
+        for i in range(IDX_V20_CHECKSUM):
+            checksum ^= data[i]
+        checksums.append(checksum)
+
+        if data[IDX_V20_CHECKSUM] not in checksums:
             _LOGGER.error(
                 "Checksum error, got %s, expected %s",
                 hex(data[IDX_V20_CHECKSUM] & 0xFF),
                 hex(checksum & 0xFF),
             )
             return
+
+        if (data[IDX_V20_FINAL] & 1) == 0:
+            _LOGGER.debug("Data is not final")
+            return
+        _LOGGER.debug("Data is final")
 
         # Reading the weight
         divider = 10.0
@@ -379,6 +395,9 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
                 continue
             if _data[IDX_VC0_WEIGHT_MSB] == 0 and _data[IDX_VC0_WEIGHT_LSB] == 0:
                 continue
+            if _data[IDX_VC0_ENCRYPTION] & 0x80:
+                # Encrypted
+                continue
 
             if (_data[IDX_VC0_FINAL] & 1) == 1:
                 data = _data
@@ -392,23 +411,41 @@ class OKOKScaleBluetoothDeviceData(BluetoothData):
         if not final:
             _LOGGER.debug("Data is not final")
             # return
+        else:
+            _LOGGER.debug("Data is final")
 
         # Reading the weight
+        divider = 10.0
         msb = data[IDX_VC0_WEIGHT_MSB]
         lsb = data[IDX_VC0_WEIGHT_LSB]
         weight: float = msb << 8 | lsb
 
+        match (data[IDX_VC0_BODY_PROPERTIES] >> 1) & 3:
+            case 0:
+                divider = 10.0
+            case 1:
+                divider = 1.0
+            case 2:
+                divider = 100.0
+            case _:
+                _LOGGER.warning("Invalid weight scale received, assuming 1 decimal")
+                divider = 10.0
+
         base_description = None
-        match data[IDX_VC0_BODY_PROPERTIES] >> 3 & 0x3:
+        match (data[IDX_VC0_BODY_PROPERTIES] >> 3) & 0x3:
             case 0:  # kg
-                weight = weight / 100.0
+                weight = weight / divider
+                base_description = SensorLibrary.MASS__MASS_KILOGRAMS
+            case 1:  # Jin
+                divider *= 2.0
+                weight = weight / divider
                 base_description = SensorLibrary.MASS__MASS_KILOGRAMS
             case 2:  # lb
-                weight = weight / 10.0
+                weight = weight / divider
                 base_description = SensorLibrary.MASS__MASS_POUNDS
             case 3:  # st:lb
                 stones = msb
-                pounds = lsb / 10.0
+                pounds = lsb / divider
                 weight = pounds + (stones * 14)
                 base_description = SensorLibrary.MASS__MASS_POUNDS
 
